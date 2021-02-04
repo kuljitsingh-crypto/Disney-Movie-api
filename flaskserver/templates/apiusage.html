@@ -1,0 +1,279 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="usage-parent">
+		<div class="api-usage">
+			<h1>Today's API Usage</h1>
+			<div>
+				<div>
+					{% if current_user.is_authenticated%}
+						{% if current_user.accounttype=='free' %}
+						<span>API Request</span>
+						{%  if dayUsage.query.filter_by(user_id=current_user.id,usage_day=date).first() %}
+							{% set datause=dayUsage.query.filter_by(user_id=current_user.id,usage_day=date).first().daily_data_usage %}
+						{% else %}
+							{% set datause=0 %}
+						{% endif %}
+						<span>
+							{% if datause%}
+								{{datause}}/{{free_account_limit}}
+							{% else %}
+							  0/{{free_account_limit}}
+							{% endif %}
+						</span>
+						{% endif %}
+					{% endif %}
+				</div>
+				{% set usage_per= ((datause/free_account_limit)*100)|round|int %}
+				<div class="usage-bar">
+					{% if usage_per<33 %}
+						<span  class="usage-green" style="width:{{usage_per}}%;"></span>
+						<span class="usage-amt-0">{{usage_per}}%</span>
+					{% else %}
+						{% if usage_per<67 %}
+							<span  class="usage-yellow" style="width:{{usage_per}}%;"></span>
+							<span class="usage-amt-34">{{usage_per}}%</span>
+						{% else %}
+							<span  class="usage-red" style="width:{{usage_per}}%;"></span>
+							<span class="usage-amt-67">{{usage_per}}%</span>
+						{% endif %}
+					{% endif %}
+					
+				</div>
+				
+			</div>
+
+		</div> 
+		<div class="usage-stat">
+			<div>
+				<h1>Statistics</h1>
+				<div>
+					<h4></h4>
+					<div class="curnt-mnth-req">
+						<div class="user-choice">
+							<span>
+								<input type=radio id="daily" name="daily" value="Daily" checked>
+								<label for="daily">Daily Basis</label>
+							</span>
+							<span>
+								<input type=radio id="hourly" name="hourly" value="Hourly">
+								<label for="hourly">Hourly Basis</label>
+								<input type=date id="date" name="date" min="{{current_user.regdate }}" style="display:none;"  placeholder="YYYY-MM-DD" 
+								required pattern="\d{4}-\d{2}-\d{2}">
+							</span>
+						</div>
+
+						<table class="daily-request">
+							<thead>
+								<tr >
+									<th class='month_name'></th>
+									<th class='user_data_usage' >Total Request:</th>
+								</tr>
+								<tr>
+									<td>Date</td>
+									<td>Requests</td>
+								</tr>
+							</thead>
+							<tbody>
+								{% set  usage =namespace(totalReq=0)%}
+								{%if current_user.is_authenticated %}
+									{% for query in dayUsage.query.filter_by(user_id=current_user.id).all() %}
+											{% if query.usage_day.strftime("%d-%m-%Y").split("-")[1]== date.split("-")[1]%}
+												<tr>
+													<td>
+														{{ query.usage_day.strftime("%d-%m-%Y") }}
+													</td>
+													<td>
+														{{ query.daily_data_usage}}
+														{%set usage.totalReq = usage.totalReq+query.daily_data_usage%}
+													</td>
+												</tr>
+											{% endif %}
+									{% endfor %}
+								{% endif %}
+							</tbody>
+						</table>
+						<table class="hourly-request" style="display: none;">
+							<thead>
+								<tr>
+									<th class='month_name'></th>
+									<th></th>
+									<th class='user_data_usage'>Total Request:</th>
+								</tr>
+								<tr>
+									<td>Date</td>
+									<td>Hour</td>
+									<td>Requests</td>
+								</tr>
+							</thead>
+							<tbody class="usage_table">
+								
+									{% set ud=namespace(date=none) %}
+									{%if current_user.is_authenticated %}
+										{% for query in hourUsage.query.filter_by(usage_day=date,user_id=current_user.id).all() %}
+											<tr>
+												<td>
+													{% if ud.date != query.usage_day.strftime("%d-%m-%Y") %}
+														{{ query.usage_day.strftime("%d-%m-%Y") }}
+														{% set ud.date= query.usage_day.strftime("%d-%m-%Y")%}
+													{% endif %}
+												</td>
+												<td>
+													{{ query.usage_hour.strftime("%I:00 %p")}}
+												</td>
+												<td>
+													{{ query.hourly_data_usage}}
+												</td>
+											</tr>
+										{% endfor %}
+									{% endif %}
+									{% if datause==0 %}
+									<tr>
+										<td>{{"-".join(date.split("-")[: : -1])}}</td>
+										<td>N/A</td>
+										<td>N/A</td>
+									</tr>
+								{% endif %}
+							</tbody>
+						</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	const userDateInput=document.querySelector("input[type=date]");
+	userDateInput.addEventListener("change",sendChngeDateReq);
+	userDateInput.addEventListener("submit",sendChngeDateReq);
+	reqStat=document.querySelector(".curnt-mnth-req");
+	usageMsg=document.querySelector(".usage-stat h4");
+	const radioBtns=document.querySelectorAll("input[type=radio]");
+	const usage_table=document.querySelector(".usage_table");
+	const dateTime=new Date();
+
+	function whichOneChecked(event){
+		if(event.type != "load"){
+			if (event.target.id.search(/daily/i)+1){
+				document.querySelector("input[type=date]").style.display="none";
+				document.querySelector(".hourly-request").style.display="none";
+				document.querySelector(".daily-request").style.display="table";
+				document.querySelector("input[name=hourly]").checked=false;
+				} 
+			else{
+				document.querySelector("input[type=date]").style.display="inline-block";
+				document.querySelector(".hourly-request").style.display="table";
+				document.querySelector(".daily-request").style.display="none";
+				document.querySelector("input[name=daily]").checked=false;
+			}
+		}
+		else{
+			Array.from(radioBtns).forEach((radioBtn)=>{
+				if (radioBtn.name=="hourly" && radioBtn.checked){
+				document.querySelector("input[type=date]").style.display="inline-block";
+				document.querySelector(".hourly-request").style.display="table";
+				document.querySelector(".daily-request").style.display="none";
+				document.querySelector("input[name=daily]").checked=false;
+				}
+			});
+		}
+	}
+	function sendChngeDateReq(){
+		var formatedData=this.value.split("-");
+		usage_table.innerHTML=`<tr><td>Invalid Date</td><td>N/A</td><td>N/A</td></tr>`;
+		if (formatedData.length<3){
+		 	return;
+		}
+		else{
+			for(let i=0;i<3;i++){
+				let dateNum=parseInt(formatedData[i])
+				if(Number.isNaN(dateNum)){
+					return;
+				}
+				else{
+					if((i===0 && formatedData[i]<dateTime.getFullYear())
+						||(i===1 && (formatedData[i]>13 || formatedData[i]<0))
+						 ||(i===2 && (formatedData[i]>31 || formatedData[i]<0)))
+						{
+						return;
+					}
+				}
+			}
+		}
+		let data=JSON.stringify(this.value);	
+		let url={{server|tojson}};
+		var origin=url.split("/");
+		origin.pop();
+		origin=origin.join("/");
+		fetch(url,{
+			method:"POST",
+			credentials: 'same-origin',
+			Origin:origin,
+			headers:{'content-type':"application/json"},
+			body:data
+		})
+		.then((res)=>res.json())
+		.then((data)=>{	showUsageStat(data)});
+	}
+	function showUsageStat(data){
+		let firstTime=true;
+		let result;
+		let node;
+		usage_table.innerHTML=`<tr><td>${chnageDatefmt()}</td><td>N/A</td><td>N/A</td></tr>`;
+		for(key in data){
+			if (firstTime){
+				usage_table.innerHTML='';
+				node=document.createElement("TR");
+				result=`<td>${chnageDatefmt()}</td><td>${key}</td><td>${data[key]}</td>`;
+				node.innerHTML=result;
+				usage_table.appendChild(node);
+				firstTime=false;
+			}
+			else{
+				node=document.createElement("TR");
+				result=`<td></td><td>${key}</td><td>${data[key]}</td>`;
+				usage_table.appendChild(node);
+				node.innerHTML=result;
+			}
+		}
+	}
+	function chnageDatefmt(){
+		let date=userDateInput.value.split("-");
+		let day=date[2];
+		date[2]=date[0];
+		date[0]=day
+		return date.join("-")
+	}
+
+	let currentMnthReq=parseInt("{{usage.totalReq}}");
+	if (currentMnthReq){
+		reqStat.style.display="block";
+		usageMsg.textContent="Below you can keep track of your Api request on daliy/hourly basis.";
+		Array.from(radioBtns).forEach((radioBtn)=>radioBtn.addEventListener("click",whichOneChecked));
+		let usage_stat={};
+		let month=dateTime.getMonth()+1;
+		let date=dateTime.getDate();
+
+		month=month>10?`${month}`:`0${month}`;
+		date=date>10?`${date}`:`0${date}`;
+		let formatedDate=`${dateTime.getFullYear()}-${month}-${date}`;
+		userDateInput.value=formatedDate;
+		userDateInput.max=formatedDate;
+
+		let dateList=dateTime.toDateString().split(" ");
+		let len =dateList.length;
+		let mnth='';
+		for(let i=0;i<len;i++){
+			if(i%2){
+				mnth+=dateList[i]+" ";
+			}
+		}
+		Array.from(document.querySelectorAll('.user_data_usage')).forEach((node)=>{node.textContent+='{{usage.totalReq}}'});
+		Array.from(document.querySelectorAll(".month_name")).forEach((node)=>{node.textContent=mnth});
+	
+	window.addEventListener("load",whichOneChecked)
+	}
+	else{
+		reqStat.style.display="none";
+		usageMsg.textContent="You did not make any request this month.";
+	}
+</script>
+{% endblock%}

@@ -1,0 +1,118 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="update-form-parent">
+		<div class="update-form">
+			<form action="" method="POST">
+				{{ acc_form.hidden_tag() }}
+				<fieldset>
+					<legend>Edit Account Information</legend>
+					<div class="content-margin">
+						{{acc_form.user_email.label()}}
+						{{ acc_form.user_email(placeholder='Email') }}
+						{% if acc_form.user_email.errors%}
+						<div>
+							{% for error in acc_form.user_email.errors %}
+							 <span class="server-msg">{{ error}}</span>
+							{% endfor  %}
+						</div>
+						{% endif %}
+					</div>
+					<div class="content-margin">
+						{{acc_form.user_first_name.label()}}
+						{{ acc_form.user_first_name() }}
+						{% if acc_form.user_first_name.errors%}
+						<div>
+							{% for error in acc_form.user_first_name.errors %}
+							 <span class="server-msg">{{ error}}</span>
+							{% endfor  %}
+						</div>
+						{% endif %}
+					</div>
+
+					<div class="content-margin">
+						{{acc_form.user_last_name.label()}}
+						{{ acc_form.user_last_name() }}
+						{% if acc_form.user_last_name.errors%}
+						<div>
+							{% for error in acc_form.user_last_name.errors %}
+							 <span class="server-msg">{{ error}}</span>
+							{% endfor  %}
+						</div>
+						{% endif %}
+					</div>
+					
+					<div>
+					{{acc_form.update_acc}}
+					</div>
+				</fieldset>
+			</form>
+		</div>
+		<div class="change-pwd-form">
+			<form action="" method="POST">
+				{{ pwd_form.hidden_tag() }}
+				<fieldset>
+					<legend>Password<span class="toggle-pwd">(change)</span></legend>
+					<div class="content-margin">
+						{{pwd_form.old_password.label}}
+						{{ pwd_form.old_password(readonly="on")}}
+						{% if pwd_form.old_password.errors%}
+						<div>
+							{% for error in pwd_form.old_password.errors %}
+							 <span class="server-msg">{{ error}}</span>
+							{% endfor  %}
+						</div>
+						{% endif %}
+					</div>
+					<div class="update-pwd" style="display:{{display}};">
+						<div class="content-margin">
+							{{pwd_form.new_password.label()}}
+							{{ pwd_form.new_password(placeholder='minimum 6 characters')}}
+							{% if pwd_form.new_password.errors%}
+							<div>
+								{% for error in pwd_form.new_password.errors %}
+								 <span class="server-msg">{{ error}}</span>
+								{% endfor  %}
+							</div>
+							{% endif %}
+						</div>
+
+						<div class="content-margin">
+							{{pwd_form.new_confrm_password.label()}}
+							{{ pwd_form.new_confrm_password(placeholder='passwords must match')}}
+							{% if pwd_form.new_confrm_password.errors%}
+							<div>
+								{% for error in pwd_form.new_confrm_password.errors %}
+								 <span class="server-msg">{{ error}}</span>
+								{% endfor  %}
+							</div>
+							{% endif %}
+						</div>
+						
+						<div>
+						{{pwd_form.change_pwd}}
+						</div>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+	<script>
+		document.querySelector(".toggle-pwd").addEventListener("click",function(){
+			document.querySelector(".update-pwd").style.display="block";});
+
+		const acc_form=document.querySelector(".update-form");
+		const pwd_form=document.querySelector(".change-pwd-form");
+		var root=document.querySelector(":root");
+		var max_form_width=getComputedStyle(root).getPropertyValue("--max-form-width");
+		function resizeUpdateAccPwdForm(){
+			if(((acc_form.clientWidth || acc_form.offsetWidth)>=max_form_width) || ((pwd_form.clientWidth || pwd_form.offsetWidth)>=max_form_width)) {
+				acc_form.style.maxWidth=max_form_width+"px";
+				pwd_form.style.maxWidth=max_form_width+"px";
+			}
+			
+		}
+		window.addEventListener("resize",resizeUpdateAccPwdForm);
+		window.addEventListener("load",resizeUpdateAccPwdForm);
+
+	</script>
+{%  endblock %}
