@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+	<div class="reset-pwd-form-parent">
+		<div class="reset-pwd-form">
+			<form action="" method="POST" enctype="multipart/form-data">
+				{{ form.hidden_tag() }}
+				{{ form.csrf_token }}
+				<fieldset>
+					<div>
+						<span class="reset-pwd-img"></span>
+						<legend>Reset Password</legend>
+					</div>
+					
+					<div>
+						{{form.user_email.label()}}
+						{{ form.user_email(placeholder='Email',autocomplete="off") }}
+						{% if form.user_email.errors%}
+						<div>
+							{% for error in form.user_email.errors %}
+							 <span>{{ error}}</span>
+							{% endfor  %}
+						</div>
+						{% endif %}
+					</div>
+					{% if not user_verified %}
+						<div>
+							{{form.verification_code.label()}}
+							{{ form.verification_code(placeholder='Enter your code here.',autocomplete="off") }}
+							{% if form.verification_code.errors%}
+							<div>
+								{% for error in form.verification_code.errors %}
+								 <span>{{ error}}</span>
+								{% endfor  %}
+							</div>
+							{% endif %}
+						</div>
+					{% else %}
+						<div>
+							{{ form.password.label}}
+							{{ form.password}}
+							<span>
+								{% for error in form.password.errors %}
+								 <span>{{ error}}</span>
+								{% endfor  %}
+							</span>
+						</div>
+						<div>
+							{{ form.conform_password.label}}
+							{{ form.conform_password}}
+							<span>
+								{% for error in form.conform_password.errors %}
+								 <span>{{ error}}</span>
+								{% endfor  %}
+							</span>
+						</div>
+					{% endif %}
+					<div class="btns">
+					{% if user_verified %}
+						{{form.reset_pwd}}
+					{% else %}
+						<span>{{form.verify_code}}</span>
+						<span>{{form.send_code}}</span>
+					{% endif %}
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+	<script>
+		
+	</script>
+{% endblock content %}

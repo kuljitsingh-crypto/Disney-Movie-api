@@ -1,0 +1,89 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="reg-form-parent">
+	<div class="reg-form">
+		<form action="" method="POST">
+			<fieldset>
+				<legend>Generate Api Key</legend>
+				{{ form.hidden_tag() }}
+				<div class="accounttype">Account: Free!(1000 limit)</div>
+				<div class="content-margin">
+					{{form.user_email.label()}}
+					{{ form.user_email(placeholder='Email',autocomplete="off") }}
+					{% if form.user_email.errors%}
+					<span>
+						{% for error in form.user_email.errors %}
+						 <span  class="server-msg">{{ error}}</span>
+						{% endfor  %}
+					</span>
+					{% endif %}
+					
+				</div>
+				<div class="content-margin">
+					{{form.user_full_name.label()}}
+					<div class="user-full-name">
+						{{ form.user_first_name(placeholder='First Name',autocomplete="off") }}
+						{{ form.user_last_name(placeholder="Last Name",autocomplete="off")}}<br/>
+					</div>
+					<div>
+					{% if form.user_full_name.errors%}
+					<span>
+						{% for error in form.user_full_name.errors %}
+						 <span  class="server-msg">{{ error}}</span>
+						{% endfor  %}
+					</span>
+					{% endif %}
+					</div>
+				</div>
+				<div >
+					<div class="content-margin">
+						{{ form.password.label}}
+						{{ form.password}}
+						{% if form.password.errors%}
+							<span>
+								{% for error in form.password.errors %}
+								 <span  class="server-msg">{{ error}}</span>
+								{% endfor  %}
+							</span>
+						{% endif %}
+					</div>
+
+					<div class="content-margin">
+						{{ form.conform_password.label}}
+						{{ form.conform_password}}
+						{% if form.conform_password.errors %}
+							<span>
+								{% for error in form.conform_password.errors %}
+								 <span  class="server-msg">{{ error}}</span>
+								{% endfor  %}
+							</span>
+						{% endif %}
+					</div>
+				</div>
+			<div>
+				{{form.submit}}
+			</div>
+			</fieldset>
+		</form>
+	</div>
+</div>
+<script>
+	var max_form_width=getComputedStyle(root).getPropertyValue("--max-form-width");
+	const reg_form=document.querySelector(".reg-form");
+	function resizeRegForm(){
+		if((reg_form.clientWidth || reg_form.offsetWidth)>=max_form_width) {
+			reg_form.style.maxWidth=max_form_width+"px";
+			reg_form.querySelector(".user-full-name").style.flexDirection="row";
+			reg_form.querySelector(".user-full-name >*").style.flexGrow=1;
+			reg_form.querySelector(".user-full-name >input").style.marginRight=16+"px";
+		}
+		else{
+			reg_form.querySelector(".user-full-name").style.flexDirection="column";
+			reg_form.querySelector(".user-full-name >*").style.flexGrow=0;
+			reg_form.querySelector(".user-full-name >input").style.marginRight=0+"px";
+		}
+	}
+	window.addEventListener("resize",resizeRegForm);
+	window.addEventListener("load",resizeRegForm);
+</script>
+{% endblock content %}
