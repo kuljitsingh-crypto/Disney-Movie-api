@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block content %}
+	<div>
+    	<h1>{{ error_msg.split(":")[0].split(" ")[1]}}</h1>
+    	<p>{{ error_msg.split(":")[1]}}</p>
+    </div>
+{% endblock %}

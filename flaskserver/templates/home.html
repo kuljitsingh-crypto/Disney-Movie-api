@@ -1,0 +1,227 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="home-page">
+	<section>
+		{% if current_user.is_authenticated %}
+		    <div class="user-apikey">
+		    	<form>
+		    		<label for="userapikey">Your Api Key</label>
+		    		<br/>
+		    		<input name="userapikey" id="=userapikey" type=text readonly value="{{current_user.apikey}}"> 
+		    	</form>
+		    </div>
+		{% endif %}
+	</section>
+	<section class="parameters-section" id="parameters-section">
+			<div>
+				<h1>Parameters</h1>
+				<table>
+					<tr>
+						<th>
+							Parmeter Name
+						</th>
+						<th>
+							Parameter Description
+						</th>
+					</tr>
+					<tr>
+						<td>
+							id
+						</td>
+						<td>
+							A valid IMDB ID (e.g. tt0032910)
+						</td>
+					</tr>
+					<tr>
+						<td>
+							title
+						</td>
+						<td>
+							Movie title to search for.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							year
+						</td>
+						<td>
+							Year of release.
+						</td>
+					</tr>
+
+				</table>
+			</div>
+	</section>
+	<section class="request-section" id="request-section" >
+		<div>
+			<h1>Make an Api request</h1>
+			<span><h3 class="all-movies">To get all movies information:</h3></span><br/>
+			<span class="request-url" >{{request.url_root}}{{url_for('allMovies')[1:]}}?apikey=</span>
+			<span class="api-key">
+			{% if current_user.is_authenticated %}
+				{{current_user.apikey}}
+			{% else %}
+				Your api key
+			{% endif %}
+			</span>
+			<span><h3 class="specific-movie">To get specific movie information:</h3></span><br/>
+			<span class="request-url" id="request-url">{{request.url_root}}{{url_for('selectedMovie')[1:]}}?apikey=</span>
+			<span class="api-key" id="api-key">
+				{% if current_user.is_authenticated %}
+					{{current_user.apikey}}
+					{% else %}
+						Your api key
+				{% endif %}
+			</span>
+			<ul class="options">
+				<li>By Title:
+				<span>&title=Movie title/&year=year </span></li>
+				<li>By Imdb ID:
+				<span>&id=Imdb Id (e.g.tt0032910)</span></li>
+			</ul>
+		</div>
+	</section>
+	<section class="Example-section" id="Example-section">
+		<div>
+			<h1>Examples</h1>
+			<div  class="title-search">
+				<form>
+					<fieldset>
+						<legend>By Title</legend>
+						<div class="title-year">
+							<div class="title">
+								<label for="title">Title</label>
+								<input id="title" name="title" type="text" autocomplete="off">
+							</div>
+							<div class="year">
+								<label for="year">Year</label>
+								<input id="year" type="text" name="year" min=4 max=4 autocomplete="off">
+							</div>
+						</div>
+						<div class="resp-btns">
+							<div>
+								<label class="response-type">Response Type:<span>JSON</span></label>
+							</div>
+							<div >
+								<input id="search" name="search" type=submit value="Search">
+								<input id="reset_search" name="reset_search" type=button value=Reset data-parent=".title-search form" onclick="resetTag(this)">
+							</div>
+						</div>
+					</fieldset>
+				</form>
+				<div class="showReqResp">
+					<div>
+						<span class="search-req-text"> Request:</span><br/>
+						<div class="search-url"></div>
+					</div>
+					<div>
+						<span class="search-resp-text"> Response:</span><br/>
+						<div class="search-result"></div>
+					</div>
+				</div>
+			</div>
+			<div class="id-search">
+				<form >
+					<fieldset >
+						<legend>By ImdbID</legend>
+						<div class="id">
+							<label for="Imdb-id">Imdb ID</label>
+							<input id="Imdb-id" name="Imdb-id" type="text">
+						</div>
+						<div class="resp-btns">
+							<div>
+								<label class="response-type">Response Type:<span>JSON</span></label>
+							</div>
+							<div>
+								<input id="search" name="search" type=submit value="search" autocomplete="off">
+								<input id="reset_search" name="reset_search" type=button value=Reset  data-parent=".id-search form" onclick="resetTag(this)">
+							</div>
+						</div>
+					</fieldset>
+				</form>
+				<div class="showReqResp">
+					<div>
+						<span class="search-req-text"> Request:</span><br/>
+						<span class="search-url"></span>
+					</div>
+					<div>
+						<span class="search-resp-text"> Response:</span><br/>
+						<div class="search-result"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</div>
+<script>
+	const searchUrl=document.querySelector("#request-url");
+	const userapikey=document.querySelector("#api-key");
+	const movietitle=document.querySelector("input[name=title]");
+	const movieyear=document.querySelector("input[name=year]");
+	const movieid=document.querySelector("input[name=Imdb-id]");
+	const reqSec=document.querySelector(".request-section");
+	let idsearch=document.querySelector('.id-search');
+	let titlesearch=document.querySelector('.title-search');
+	function chngeHeight(e){
+		if(e.propertyName!=="opacity") return;
+		if (this.style.opacity==="0"){
+			this.style.height=0;
+		console.log(e,this.style.opacity)}
+
+	}
+
+	function sendRequest(e){
+		e.preventDefault();
+		let apikey=userapikey.textContent.trim();
+		
+		let requrl=searchUrl.textContent.trim()+apikey;
+		let data='';
+		this.querySelector(".showReqResp").style.height=0+"px";
+		this.querySelector(".showReqResp").style.opacity=0;
+		this.querySelector(".showReqResp").style.transform="scale(0,0)";
+		
+		if(this.className=="title-search"){
+			if (movietitle.value){
+				data=`&title=${movietitle.value}`;
+			}
+			else if (movieyear.value){
+				data=`&year=${movieyear.value}`;	
+			}
+			idsearch.querySelector("form").reset();
+		}
+		else{
+			if(movieid.value){
+				data=`&id=${movieid.value}`;	
+			}
+			titlesearch.querySelector("form").reset();
+		}
+		let url=requrl+data;
+		fetch(url,{method:'GET'})
+		.then((res)=>res.json())
+		.then((data)=>{
+			url=`<a href=${url} style="display:inline-block;width:100%;word-wrap:break-word;overflow-wrap: break-word;-ms-word-break: break-all;word-break: break-word;color:#1507ec;
+				  cursor:pointer;">${url}</a>`;
+			let search_url=this.querySelector('.search-url');
+			let search_resp=this.querySelector('.search-result');
+			search_url.innerHTML=url;
+			search_resp.textContent=JSON.stringify(data);
+			let height=Array.from(this.querySelector(".showReqResp").children).reduce((a,b)=>(a+b.clientHeight||b.offsetHeight),0);
+			this.querySelector(".showReqResp").style.height=height+"px";
+			this.querySelector(".showReqResp").style.opacity=1;
+			this.querySelector(".showReqResp").style.transform="scale(1,1)";
+		});
+	}
+	function resetTag(self){
+		parent=document.querySelector(""+self.dataset.parent+"")
+		parent.reset();
+		parent.parentElement.querySelector(".showReqResp").style.height=0+"px";
+		parent.parentElement.querySelector(".showReqResp").style.opacity=0;
+		parent.parentElement.querySelector(".showReqResp").style.transform="scale(0,0)";
+
+
+	}
+
+	titlesearch.addEventListener('submit',sendRequest);
+	idsearch.addEventListener('submit',sendRequest);
+</script>
+{% endblock content %}
